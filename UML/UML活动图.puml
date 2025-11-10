@@ -1,0 +1,53 @@
+@startuml
+title 活动图：新增记账
+
+skinparam shadowing false
+skinparam activity {
+  StartColor #6cb4
+  EndColor   #6cb4
+}
+
+partition User {
+  start
+  :打开“新增记账”页面;
+  :输入 金额/分类/日期;
+}
+
+partition UI {
+  :格式校验;
+}
+
+partition RecordService {
+  if (业务校验：\n金额、日期、类别合法？) then (是)
+    :构造 Record 实例;
+  else (否)
+    -> U I;
+    :错误提示（金额/日期）;
+    -> User;
+    :返回编辑页并保留已填数据;
+    stop
+  endif
+}
+
+partition LocalRepo {
+  :saveRecord(record);
+  if (写入持久层成功？) then (是)
+    :数据已保存;
+  else (否)
+    -> U I;
+    :存储失败提示;
+    -> User;
+    :返回编辑页;
+    stop
+  endif
+}
+
+partition UI {
+  :刷新账单内容;
+  :清空表单;
+  -> User;
+  :反馈保存成功;
+  end
+}
+
+@enduml

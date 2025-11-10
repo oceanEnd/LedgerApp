@@ -1,0 +1,51 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #888
+skinparam usecaseBackgroundColor #EEF5FF
+skinparam actorStyle awesome
+
+actor User as U
+
+rectangle "智能记账本系统" as Sys {
+  (记录收支) as UC_Record
+  (写入字段[数额/分类/日期]) as UC_Validate 
+  (分类管理) as UC_Category  
+
+  (查看统计[自由区间]) as UC_Stats  
+  (生成图表[饼/柱]) as UC_Charts
+  (选择时间区间) as UC_Range
+
+  (搜索记录[分类/日期/数额]) as UC_Search  
+  (设置筛选条件) as UC_Filters
+  (编辑/删除记录) as UC_EditDel  
+
+  (导出备份) as UC_Export 
+  (选择导出格式) as UC_ExportFmt
+
+  (解锁应用/敏感页) as UC_Unlock
+
+  (切换主题[浅色/深色]) as UC_Theme
+}
+
+' 参与者到用例
+U --> UC_Record
+U --> UC_Category
+U --> UC_Stats
+U --> UC_Search
+U --> UC_Export
+U --> UC_Unlock
+U --> UC_Theme
+
+
+' include / extend 关系
+UC_Record  ..> UC_Validate : <<include>>
+UC_Record  ..> UC_EditDel  : <<include>>
+UC_Stats   ..> UC_Range    : <<include>>
+UC_Stats   ..> UC_Charts   : <<include>>
+UC_Search  ..> UC_Filters  : <<include>>
+UC_EditDel ..> UC_Search   : <<extend>>
+UC_Export  ..> UC_ExportFmt: <<include>>
+
+
+@enduml

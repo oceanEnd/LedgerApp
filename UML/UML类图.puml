@@ -1,0 +1,125 @@
+@startuml UML类图
+
+' =========================
+' 记录与分类模块（Record & Category Module）
+' =========================
+class Record as "记录\nRecord" {
+    -amount: number
+    -date: Date
+    -category: Category
+}
+
+class Category as "分类\nCategory" {
+    -id: string
+    -name: string
+    -type: string  ' Income / Expense
+}
+
+' =========================
+' 统计与汇总模块（Statistics & Summary Module）
+' =========================
+class Summary as "汇总\nSummary" {
+    -income: number
+    -expense: number
+    -balance: number
+}
+
+class StatisticsService as "统计服务\nStatisticsService" {
+    +sumByRange(start: Date, end: Date): Summary
+    +groupByCategory(start: Date, end: Date): Map<Category, number>
+}
+
+' =========================
+' 搜索与导出模块（Search & Export Module）
+' =========================
+class SearchService as "搜索服务\nSearchService" {
+    +search(start: Date, end: Date, categories: List<Category>, amountMin: number, amountMax: number): List<Record>
+}
+
+class ExportService as "导出服务\nExportService" {
+    +toJSON(path: string): void
+}
+
+
+' =========================
+' 记录与分类管理模块（Record & Category Management Module）
+' =========================
+class RecordService as "记录服务\nRecordService" {
+    +add(amount: number, category: Category, date: Date): Record
+    +edit(id: string, amount: number, category: Category, date: Date): Record
+    +delete(ids: List<string>): void
+}
+
+class CategoryService as "分类服务\nCategoryService" {
+    +create(name: string, type: string): Category
+    +rename(id: string, name: string): Category
+    +delete(id: string): void
+}
+
+' =========================
+' 安全与偏好模块（Security & Preferences Module）
+' =========================
+class AppLock as "应用锁\nAppLock" {
+    -enabled: boolean
+    -retryCount: number
+    +enable(): void
+    +disable(): void
+    +reset(): void
+}
+
+class AuthService as "认证服务\nAuthService" {
+    +lock(): void
+    +unlock(pin: string): boolean
+    +isLocked(): boolean
+}
+
+' =========================
+' 本地存储模块（Local Persistence Module）
+' =========================
+class LocalRepository as "本地仓库\nLocalRepository" {
+    -records: List<Record>
+    -categories: List<Category>
+    +saveRecord(r: Record): Record
+    +findRecordById(id: string): Record
+    +findRecords(start: Date, end: Date, categories: List<Category>, amountMin: number, amountMax: number): List<Record>
+    +deleteRecords(ids: List<string>): void
+    +saveCategory(c: Category): Category
+    +findCategoryById(id: string): Category
+    +findCategoryByName(name: string): Category
+    +allCategories(): List<Category>
+}
+
+' =========================
+' 可选：图表渲染（Chart Rendering）
+' =========================
+class ChartEngine as "图表引擎\nChartEngine" {
+    +renderPie(grouped: Map<Category, number>): Image
+    +renderBar(grouped: Map<Category, number>): Image
+}
+
+
+' ========= 关系（Relationships） =========
+' 领域关系
+Record "1" -- "1" Category : belongs_to >
+
+' 仓库持久化关系
+LocalRepository "1" -- "0..*" Record : stores >
+LocalRepository "1" -- "0..*" Category : stores >
+
+' 服务到仓库（面向对象直连，不用接口）
+RecordService "1" -- "1" LocalRepository : uses >
+CategoryService "1" -- "1" LocalRepository : uses >
+StatisticsService "1" -- "1" LocalRepository : reads >
+Summary "1" -- "1" StatisticsService : uses >
+SearchService "1" -- "1" LocalRepository : reads >
+ExportService "1" -- "1" LocalRepository : reads >
+
+
+' 统计结果供图表使用（可选）
+StatisticsService "1" -- "1" ChartEngine : provides_data_to >
+
+' 认证控制应用锁
+AuthService "1" -- "1" AppLock : controls >
+
+
+@enduml

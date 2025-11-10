@@ -1,0 +1,23 @@
+@startuml
+title 序列图：搜索并批量删除
+
+actor User as U
+participant "SearchPage" as UI
+participant "SearchService" as S
+database   "LocalRepo" as Repo
+participant "RecordService" as R
+
+U  -> UI  : 输入条件(起止日期/分类/金额范围)
+UI -> S   : find(criteria)
+S  -> Repo: query(criteria)
+Repo --> S: records[]
+S  --> UI : records[]
+
+U  -> UI  : 勾选记录/确认删除
+UI -> R   : delete(batchIds)
+R  -> Repo: delete(batchIds)
+Repo --> R: ok
+R  --> UI : ok
+UI --> U  : 更新列表/结果提示
+
+@enduml
